@@ -1,6 +1,6 @@
 const CACHE_NAME = 'enreg-clients-v1';
 const FILES_TO_CACHE = [
-  './enregistrement_clients.html',
+  './index.html',
   './manifest.json'
 ];
 
@@ -45,7 +45,7 @@ self.addEventListener('fetch', event => {
         return response;
       }).catch(() => {
         // Hors-ligne et pas en cache → page principale
-        return caches.match('./enregistrement_clients.html');
+        return caches.match('./index.html');
       });
     })
   );
