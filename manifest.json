@@ -2,7 +2,7 @@
   "name": "Enregistrement Clients Terrain",
   "short_name": "Clients Terrain",
   "description": "Application d'enregistrement clients sur le terrain",
-  "start_url": "./enregistrement_clients.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0f4f8",
   "theme_color": "#1a56a0",
