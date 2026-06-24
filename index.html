@@ -188,6 +188,879 @@
 <!-- ══ ÉCRAN SESSION (= accueil) ══ -->
 <div id="sessionScreen" class="card" style="display:none">
   <div id="agentInfo" class="agent-badge"></div>
+  <div class="sec-title">Bases disponibles</div>
+  <div id="qList" class="q-list"></div>
+  <div class="q-divider">— Nouvelle Base —</div>
+  <div class="field-label">Quartier</div>
+  <input type="text" id="newQuartier" placeholder="ex: Agbalépédogan …">
+  <div class="field-label">Base</div>
+  <input type="text" id="newBase" placeholder="ex: D5" style="text-transform:uppercase">
+  <div class="field-label">Adresse IP de base</div>
+  <div class="field-hint">Format : X.X.X.0 — doit obligatoirement finir par .0</div>
+  <input type="text" id="newIP" placeholder="ex: 172.20.0.0" inputmode="decimal">
+  <span class="err-msg" id="ipErr">❌ Adresse IP invalide — format requis : X.X.X.0 (chaque bloc 0-255, dernier bloc = 0)</span>
+  <div class="field-label">Rules (incrément)</div>
+  <div class="field-hint">ex: +1 → N°1 donne .2</div>
+  <input type="text" id="newRules" placeholder="1" inputmode="numeric">
+  <div class="btn-row">
+    <button class="btn-next" onclick="startNewSession()">➕ Créer la Base</button>
+  </div>
+</div>
+
+<!-- ══ FORMULAIRE ══ -->
+<div id="formSection" style="display:none">
+  <div class="progress-label" id="progressLabel">Étape 1 / 5</div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:20%"></div></div>
+  <div class="card">
+
+    <div class="step active" id="step1">
+      <div class="step-label">Étape 1 / 5 — Numéro</div>
+      <div style="font-size:0.76rem;color:#666;margin-bottom:8px">Appuyez sur un numéro (✓ = déjà pris)</div>
+      <div class="num-grid" id="numGrid"></div>
+      <div id="selectionInfo"></div>
+      <div class="btn-row">
+        <button class="btn-next" id="btnStep2" onclick="goStep(2)" disabled style="opacity:0.4">Suivant →</button>
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="step-label">Étape 2 / 5 — Nom</div>
+      <div class="field-label">Infos automatiques</div>
+      <input type="text" id="fAutoInfo" readonly>
+      <div class="field-label">Nom complet du client</div>
+      <input type="text" id="fNom" placeholder="Prénom et Nom …">
+      <div class="btn-row">
+        <button class="btn-prev" onclick="goStep(1)">← Retour</button>
+        <button class="btn-next" onclick="goStep(3)">Suivant →</button>
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <div class="step-label">Étape 3 / 5 — Téléphone</div>
+      <div class="field-label">Numéro de téléphone</div>
+      <input type="tel" id="fNumero" placeholder="ex: 90092671" inputmode="tel">
+      <div class="btn-row">
+        <button class="btn-prev" onclick="goStep(2)">← Retour</button>
+        <button class="btn-next" onclick="goStep(4)">Suivant →</button>
+      </div>
+    </div>
+
+    <div class="step" id="step4">
+      <div class="step-label">Étape 4 / 5 — MAC & Localisation</div>
+      <div class="field-label">Adresse MAC (4 caractères)</div>
+      <div class="field-hint">Lettres et chiffres uniquement ex: A3F2</div>
+      <input type="text" id="fMAC" placeholder="ex: A3F2" maxlength="4" style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;font-weight:700;">
+      <span class="err-msg" id="macErr">❌ Exactement 4 caractères alphanumériques requis</span>
+      <div class="field-label">Localisation</div>
+      <input type="text" id="fLocal" placeholder="ex: 865H+M …">
+      <div class="btn-row">
+        <button class="btn-prev" onclick="goStep(3)">← Retour</button>
+        <button class="btn-next" onclick="validateStep4()">Suivant →</button>
+      </div>
+    </div>
+
+    <div class="step" id="step5">
+      <div class="step-label">✅ Récapitulatif</div>
+      <div class="recap-card">
+        <div class="recap-title">📄 Fiche Client</div>
+        <div class="recap-row"><span class="recap-key">Agent</span>        <span class="recap-val purple" id="rAgent"></span></div>
+        <div class="recap-row"><span class="recap-key">Quartier</span>     <span class="recap-val purple" id="rQuartier"></span></div>
+        <div class="recap-row"><span class="recap-key">Base</span>          <span class="recap-val purple" id="rBase"></span></div>
+        <div class="recap-row"><span class="recap-key">N°</span>            <span class="recap-val auto"   id="rNum"></span></div>
+        <div class="recap-row"><span class="recap-key">Code</span>          <span class="recap-val auto"   id="rCode"></span></div>
+        <div class="recap-row"><span class="recap-key">A. SSID</span>       <span class="recap-val auto"   id="rSSID"></span></div>
+        <div class="recap-row"><span class="recap-key">IP Client</span>     <span class="recap-val green"  id="rIP"></span></div>
+        <div class="recap-row"><span class="recap-key">Nom</span>           <span class="recap-val"        id="rNom"></span></div>
+        <div class="recap-row"><span class="recap-key">Téléphone</span>     <span class="recap-val"        id="rNumero"></span></div>
+        <div class="recap-row"><span class="recap-key">Adresse MAC</span>   <span class="recap-val green"  id="rMAC"></span></div>
+        <div class="recap-row"><span class="recap-key">Localisation</span>  <span class="recap-val"        id="rLocal"></span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-prev" onclick="goStep(4)">← Modifier</button>
+        <button class="btn-confirm" onclick="saveClient()">✅ Confirmer</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ SUCCÈS ══ -->
+<div id="success" class="card" style="margin-top:0;display:none">
+  <div class="check-circle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  </div>
+  <h2>Client enregistré !</h2>
+  <p id="successMsg"></p>
+  <div id="saveStatus"></div>
+  <button class="btn-next btn-block" onclick="newClient()">➕ Client suivant</button>
+</div>
+
+<!-- ══ TABLE ══ -->
+<div id="tableSection">
+  <h3 id="tableTitle"></h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>N°</th><th>Code</th><th>SSID</th><th>IP</th><th>Nom</th><th>Tél</th><th>MAC</th><th>Local.</th><th>Agent</th><th></th></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ BARRE D'ACTIONS EN BAS ══ -->
+<div id="bottomBar">
+  <button class="bb-btn primary" onclick="goHome()" aria-label="Accueil">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
+    <span>Accueil</span>
+  </button>
+  <button class="bb-btn" id="bbSync" onclick="changeSession()" aria-label="Changer de session">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.3 6.4L3 16"/><path d="M3 12a9 9 0 0 1 15.3-6.4L21 8"/><path d="M3 21v-5h5"/><path d="M21 3v5h-5"/></svg>
+    <span>Session</span>
+  </button>
+  <button class="bb-btn accent" id="bbExport" onclick="exportCSV()" aria-label="Télécharger CSV">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+    <span>CSV</span>
+  </button>
+</div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, set }
+  from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyADE3IP3A-bkSBWiyXQ9lVem1Fe5RjuU9c",
+  authDomain: "enregistrement-clients.firebaseapp.com",
+  databaseURL: "https://enregistrement-clients-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "enregistrement-clients",
+  storageBucket: "enregistrement-clients.firebasestorage.app",
+  messagingSenderId: "158077462854",
+  appId: "1:158077462854:web:a204c6127beb2b8f4bdd47"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── CODES ──
+const CODES = {
+   1:'A7K',    2:'X9LM',   3:'Q4ZTR',  4:'R2WXC',  5:'M7QAFJ',
+   6:'T5K',    7:'V3LF',   8:'H9XCTR', 9:'J4MNB',  10:'C8TYQL',
+  11:'N2Q',   12:'F7LPAR', 13:'D5XA',  14:'K9RVTQ',15:'W8QKL',
+  16:'Y4TZPX',17:'G2N',   18:'L7XMRQ',19:'U5M',   20:'E9QFAT',
+  21:'Z3KD',  22:'A6TWPX',23:'P2ZXQV',24:'N5Q',   25:'H7KFAL',
+  26:'T9X',   27:'B4MRLW',28:'J8QWXT',29:'F5TZ',  30:'X7KDMQ',
+  31:'M3RVTA',32:'D8KFLT',33:'A2X',   34:'R7MQTL',
+  35:'P9LVXC',36:'H2KFMP',37:'T7XCQL',38:'B5M',   39:'V9LPQA',
+  40:'J3QWFT',41:'X2KDPL',42:'C7MNQX',43:'M5R',   44:'D9QFLT',
+  45:'L8XQTR',46:'U2M',   47:'Y7KPLA',48:'E4WQXT',49:'Z5MR',
+  50:'A8T',
+  51:'R3XQFA',52:'P7L',   53:'N9KDMX',54:'T2QWLP',55:'B7MRXT',
+  56:'J9LPQA',57:'F3Q',   58:'X8TZRM',59:'M7QFLT',60:'D4X',
+  61:'K87MNQP',62:'U9RVTA',63:'Y2K',  64:'G7XKPL',65:'Z2WKFA',
+  66:'A9PXT',  67: 'P4MNQV',68:'N8X', 69:'H3TZRM',70:'T7Q',
+  71:'B2KLPX', 72:'J5MNQT', 73:'F4X', 74:'X8RVTA',75:'M7QZLP',
+  76:'D2TZ',   77:'K9XQFA', 78:'U8MNQP',79:'Y5R', 80:'G2PLXT',
+  81:'Z7QWLM',
+};
+
+const getSSID = n => 'BW' + n;
+
+function parseIP(s) {
+  const p = s.trim().split('.').map(Number);
+  return p.length===4 && p.every(x=>Number.isInteger(x)&&x>=0&&x<=255) ? p : null;
+}
+function validateIP(s) {
+  const v = s.trim();
+  // Format strict : 4 blocs séparés par des points, chacun 0-255, pas de "/masque"
+  if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v)) return false;
+  const p = parseIP(v);
+  if (!p) return false;
+  // Norme réseau : le dernier bloc doit être 0 (adresse de base réseau)
+  if (p[3] !== 0) return false;
+  return true;
+}
+function calcIP(base, rules, n) {
+  const p = parseIP(base); if(!p) return '—';
+  const inc = parseInt((rules||'+1').replace('+',''))||1;
+  const add = inc + n;
+  let v3=p[3]+add, v2=p[2]+Math.floor(v3/256), v1=p[1]+Math.floor(v2/256), v0=p[0]+Math.floor(v1/256);
+  return (v0%256)+'.'+(v1%256)+'.'+(v2%256)+'.'+(v3%256);
+}
+
+// ── STATE ──
+let agent       = localStorage.getItem('agent_name') || null;
+let session     = null;
+let allClients  = {};
+let selectedNum = null;
+let currentStep = 1;
+let dbListener  = null;
+let isOnline    = navigator.onLine;
+// Navigation history for the global back button
+
+// ── SYNC BAR ──
+function setSyncBar(state, msg) {
+  const bar=document.getElementById('syncBar');
+  const dot=document.getElementById('syncDot');
+  const txt=document.getElementById('syncMsg');
+  bar.className=''; bar.classList.add(state);
+  dot.className='dot';
+  const dotColor={online:'green',offline:'yellow',syncing:'blue',error:'red'};
+  dot.classList.add(dotColor[state]||'blue');
+  txt.textContent=msg;
+}
+
+window.addEventListener('online',  ()=>{ isOnline=true;  setSyncBar('online','Connecté — synchronisation active'); });
+window.addEventListener('offline', ()=>{ isOnline=false; setSyncBar('offline','Hors-ligne — données sauvegardées localement'); });
+
+// ── LOCAL CACHE ──
+function saveLocal() {
+  try { localStorage.setItem('clients_cache', JSON.stringify(allClients)); } catch(e){}
+}
+function loadLocal() {
+  try { const s=localStorage.getItem('clients_cache'); if(s) allClients=JSON.parse(s); } catch(e){}
+}
+
+// ── BROUILLON (anti-perte de données) ──
+const DRAFT_KEY = 'client_draft';
+function saveDraft(){
+  if (!session) return;
+  const draft = {
+    sessionKey: session.key, step: currentStep, selectedNum: selectedNum,
+    nom: document.getElementById('fNom').value,
+    numero: document.getElementById('fNumero').value,
+    mac: document.getElementById('fMAC').value,
+    local: document.getElementById('fLocal').value,
+    savedAt: Date.now()
+  };
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch(e){}
+}
+function loadDraft(){
+  try {
+    const s = localStorage.getItem(DRAFT_KEY);
+    if (!s) return null;
+    const d = JSON.parse(s);
+    if (!session || d.sessionKey !== session.key) return null;
+    return d;
+  } catch(e){ return null; }
+}
+function clearDraft(){ try { localStorage.removeItem(DRAFT_KEY); } catch(e){} }
+
+function restoreDraftIfAny(){
+  const d = loadDraft();
+  if (!d) return;
+  if (usedNums().includes(d.selectedNum)) { clearDraft(); return; }
+  if (!confirm('📝 Une saisie inachevée a été retrouvée (N°'+d.selectedNum+(d.nom?' · '+d.nom:'')+').\n\nVoulez-vous la reprendre ?')) {
+    clearDraft(); return;
+  }
+  selectedNum = d.selectedNum;
+  renderGrid();
+  document.getElementById('fNom').value    = d.nom||'';
+  document.getElementById('fNumero').value = d.numero||'';
+  document.getElementById('fMAC').value    = d.mac||'';
+  document.getElementById('fLocal').value  = d.local||'';
+  const b=document.getElementById('btnStep2');
+  b.disabled=false; b.style.opacity='1';
+  const info=document.getElementById('selectionInfo');
+  const ip=calcIP(session.ip,session.rules,selectedNum);
+  info.style.display='block';
+  info.innerHTML='✅ <b>N°'+selectedNum+'</b> · Code:<b>'+CODES[selectedNum]+'</b> · SSID:<b>'+getSSID(selectedNum)+'</b> · IP:<b style="color:#16a34a">'+ip+'</b>';
+  goStep(Math.min(d.step||1, 4));
+}
+
+// ── FIREBASE LISTENER ──
+function listenSession() {
+  if (!session) return;
+  if (dbListener) dbListener();
+  const key = session.quartier.replace(/\W/g,'_')+'__'+session.base;
+  setSyncBar('syncing','Synchronisation…');
+  const r = ref(db, 'sessions/'+key+'/clients');
+  dbListener = onValue(r, snap => {
+    allClients = snap.val() || {};
+    saveLocal();
+    setSyncBar('online','Connecté · '+Object.keys(allClients).length+' client(s) synchronisé(s)');
+    renderGrid();
+    renderTable();
+  }, err => {
+    setSyncBar('error','Erreur Firebase — mode local actif');
+  });
+}
+
+// ── TOP BAR / NAVIGATION ──
+function updateTopBar(){
+  const bottomBar = document.getElementById('bottomBar');
+  bottomBar.style.display = (agent) ? 'flex' : 'none';
+  document.getElementById('bbExport').style.opacity = session ? '1' : '0.35';
+}
+
+function goHome(){
+  showSessionScreen(false);
+}
+window.goHome = goHome;
+
+function changeSession(){
+  goHome();
+}
+window.changeSession = changeSession;
+
+// ── AGENT ──
+function setAgent() {
+  const v = document.getElementById('agentName').value.trim();
+  if (!v) { alert('Entrez votre nom.'); return; }
+  agent = v;
+  localStorage.setItem('agent_name', agent);
+  document.getElementById('agentScreen').style.display='none';
+  showSessionScreen(false);
+}
+window.setAgent = setAgent;
+
+// ── SESSION SCREEN (accueil) ──
+function showSessionScreen(pushHistory = true) {
+  if (!agent) {
+    document.getElementById('agentScreen').style.display='block';
+    document.getElementById('sessionScreen').style.display='none';
+    document.getElementById('formSection').style.display='none';
+    document.getElementById('success').style.display='none';
+    document.getElementById('tableSection').style.display='none';
+    document.getElementById('headerSub').textContent='Identification';
+    updateTopBar();
+    return;
+  }
+  document.getElementById('agentScreen').style.display='none';
+  document.getElementById('sessionScreen').style.display='block';
+  document.getElementById('formSection').style.display='none';
+  document.getElementById('success').style.display='none';
+  document.getElementById('tableSection').style.display='none';
+  document.getElementById('headerBadge').style.display='none';
+  document.getElementById('headerSub').textContent='Bonjour '+agent+' 👋';
+  document.getElementById('agentInfo').textContent='👤 Agent : '+agent;
+  updateTopBar();
+  loadSessionList();
+}
+window.showSessionScreen = showSessionScreen;
+
+const SESSIONS_CACHE_KEY = 'sessions_cache';
+
+function saveSessionsLocal(data) {
+  try { localStorage.setItem(SESSIONS_CACHE_KEY, JSON.stringify(data)); } catch(e){}
+}
+function loadSessionsLocal() {
+  try { const s=localStorage.getItem(SESSIONS_CACHE_KEY); return s?JSON.parse(s):{}; } catch(e){ return {}; }
+}
+
+function loadSessionList() {
+  setSyncBar('syncing','Chargement des sessions…');
+  const r = ref(db, 'sessions');
+  onValue(r, snap => {
+    const data = snap.val()||{};
+    saveSessionsLocal(data); // garde une copie locale pour le mode hors-ligne
+    setSyncBar('online','Connecté');
+    renderSessionList(data);
+  }, ()=>{
+    // Hors-ligne ou erreur Firebase : on affiche les sessions connues localement
+    const cached = loadSessionsLocal();
+    setSyncBar('offline','Hors-ligne — sessions enregistrées disponibles');
+    renderSessionList(cached);
+  });
+}
+
+function renderSessionList(data) {
+  const list=document.getElementById('qList');
+  list.innerHTML='';
+  const entries=Object.entries(data);
+  if (!entries.length) {
+    list.innerHTML='<div style="color:#aaa;font-size:0.82rem;text-align:center;padding:8px 0">Aucune session — créez-en une ci-dessous</div>';
+    return;
+  }
+  entries.forEach(([key,val])=>{
+    const info=val.info||{};
+    const count=Object.keys(val.clients||{}).length;
+    const div=document.createElement('div');
+    div.className='q-item';
+    div.innerHTML=
+      '<div><div class="q-name">📍 '+info.quartier+' · BASE '+info.base+'</div>'+
+      '<div class="q-meta">IP: '+info.ip+' · Rules: '+info.rules+'</div></div>'+
+      '<span class="q-count">'+count+' / 66</span>';
+    div.onclick=()=>selectSession(key, info);
+    list.appendChild(div);
+  });
+}
+
+function selectSession(key, info) {
+  session={...info, key};
+  openForm(false);
+}
+window.selectSession = selectSession;
+
+function startNewSession() {
+  const q=document.getElementById('newQuartier').value.trim();
+  const b=document.getElementById('newBase').value.trim().toUpperCase();
+  const ip=document.getElementById('newIP').value.trim();
+  const rules=document.getElementById('newRules').value.trim()||'+1';
+  if (!q){alert('Entrez le quartier.');return;}
+  if (!b){alert('Entrez la base.');return;}
+  if (!validateIP(ip)){
+    document.getElementById('ipErr').style.display='block';
+    document.getElementById('newIP').classList.add('error');
+    return;
+  }
+  document.getElementById('ipErr').style.display='none';
+  document.getElementById('newIP').classList.remove('error');
+  const key=q.replace(/\W/g,'_')+'__'+b;
+
+  // Si une session avec ce quartier+base existe déjà (en ligne ou en cache local), on la rejoint
+  // au lieu d'en créer une "neuve" qui sèmerait la confusion.
+  const known = loadSessionsLocal();
+  if (known[key]) {
+    if (!confirm('📍 Une session "'+q+' · BASE '+b+'" existe déjà.\n\nVoulez-vous la reprendre avec ses clients déjà enregistrés ?')) return;
+    session = { ...(known[key].info||{quartier:q,base:b,ip,rules}), key };
+    openForm(false);
+    return;
+  }
+
+  session={quartier:q, base:b, ip, rules, key};
+  set(ref(db,'sessions/'+key+'/info'), {quartier:q,base:b,ip,rules}).catch(()=>{});
+  openForm(false);
+}
+window.startNewSession = startNewSession;
+
+function openForm(pushHistory = true) {
+  document.getElementById('sessionScreen').style.display='none';
+  document.getElementById('formSection').style.display='block';
+  document.getElementById('success').style.display='none';
+  const badge='📍 '+session.quartier+' · BASE '+session.base;
+  document.getElementById('headerSub').textContent=badge+' · '+agent;
+  document.getElementById('headerBadge').style.display='inline-block';
+  document.getElementById('headerBadge').textContent=badge;
+  selectedNum=null;
+  ['fNom','fNumero','fMAC','fLocal'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('selectionInfo').style.display='none';
+  document.getElementById('selectionInfo').innerHTML='';
+  const b2=document.getElementById('btnStep2');
+  b2.disabled=true; b2.style.opacity='0.4';
+  if (currentStep!==1){
+    document.getElementById('step'+currentStep).classList.remove('active');
+    currentStep=1;
+    document.getElementById('step1').classList.add('active');
+  }
+  document.getElementById('progressBar').style.width='20%';
+  document.getElementById('progressLabel').textContent='Étape 1 / 5';
+  allClients={};
+  loadLocal();
+  listenSession();
+  updateTopBar();
+  window.scrollTo(0,0);
+  setTimeout(restoreDraftIfAny, 400); // let Firebase listener populate usedNums first
+}
+
+// ── GRID ──
+function usedNums() { return Object.values(allClients).map(c=>c.num); }
+
+function renderGrid() {
+  const used=usedNums();
+  const grid=document.getElementById('numGrid');
+  grid.innerHTML='';
+  const maxN = Math.max(...Object.keys(CODES).map(Number));
+  for(let n=1;n<=maxN;n++){
+    const isUsed=used.includes(n);
+    const btn=document.createElement('button');
+    btn.className='num-btn'+(isUsed?' used':'')+(selectedNum===n?' selected':'');
+    btn.innerHTML='<span class="nb-num">'+n+'</span><span class="nb-code">'+CODES[n]+'</span>'+(isUsed?'<span class="used-x">✓</span>':'');
+    if(!isUsed) btn.onclick=()=>selectNum(n);
+    grid.appendChild(btn);
+  }
+}
+
+function selectNum(n){
+  selectedNum=n; renderGrid();
+  const ip=calcIP(session.ip,session.rules,n);
+  const info=document.getElementById('selectionInfo');
+  info.style.display='block';
+  info.innerHTML='✅ <b>N°'+n+'</b> · Code:<b>'+CODES[n]+'</b> · SSID:<b>'+getSSID(n)+'</b> · IP:<b style="color:#16a34a">'+ip+'</b>';
+  const b=document.getElementById('btnStep2');
+  b.disabled=false; b.style.opacity='1';
+  saveDraft();
+}
+
+// ── STEPS ──
+function goStep(n){
+  if(n===2&&!selectedNum) return;
+  document.getElementById('step'+currentStep).classList.remove('active');
+  currentStep=n;
+  document.getElementById('step'+currentStep).classList.add('active');
+  document.getElementById('progressBar').style.width=(n===5?100:n/5*100)+'%';
+  document.getElementById('progressLabel').textContent=n<5?'Étape '+n+' / 5':'Récapitulatif';
+  if(n===2){
+    const ip=calcIP(session.ip,session.rules,selectedNum);
+    document.getElementById('fAutoInfo').value='N°'+selectedNum+' | Code:'+CODES[selectedNum]+' | SSID:'+getSSID(selectedNum)+' | IP:'+ip;
+    setTimeout(()=>document.getElementById('fNom').focus(),100);
+  }
+  if(n===3) setTimeout(()=>document.getElementById('fNumero').focus(),100);
+  if(n===4) setTimeout(()=>document.getElementById('fMAC').focus(),100);
+  if(n===5) fillRecap();
+  if(n===1) renderGrid();
+  saveDraft();
+  updateTopBar();
+}
+window.goStep=goStep;
+
+function validateStep4(){
+  const mac=document.getElementById('fMAC').value.trim().toUpperCase();
+  const ok=/^[A-Z0-9]{4}$/.test(mac);
+  document.getElementById('macErr').style.display=ok?'none':'block';
+  document.getElementById('fMAC').classList.toggle('error',!ok);
+  if(ok){document.getElementById('fMAC').value=mac; goStep(5);}
+  else document.getElementById('fMAC').focus();
+}
+window.validateStep4=validateStep4;
+
+function fillRecap(){
+  const ip=calcIP(session.ip,session.rules,selectedNum);
+  document.getElementById('rAgent').textContent    = agent;
+  document.getElementById('rQuartier').textContent = session.quartier;
+  document.getElementById('rBase').textContent     = session.base;
+  document.getElementById('rNum').textContent      = selectedNum;
+  document.getElementById('rCode').textContent     = CODES[selectedNum];
+  document.getElementById('rSSID').textContent     = getSSID(selectedNum);
+  document.getElementById('rIP').textContent       = ip;
+  document.getElementById('rNom').textContent      = document.getElementById('fNom').value||'—';
+  document.getElementById('rNumero').textContent   = document.getElementById('fNumero').value||'—';
+  document.getElementById('rMAC').textContent      = document.getElementById('fMAC').value||'—';
+  document.getElementById('rLocal').textContent    = document.getElementById('fLocal').value||'—';
+}
+
+// ── SAVE ──
+async function saveClient(){
+  const ip=calcIP(session.ip,session.rules,selectedNum);
+  const c={
+    agent, quartier:session.quartier, base:session.base,
+    sessionIP:session.ip, sessionRules:session.rules,
+    num:selectedNum, code:CODES[selectedNum], ssid:getSSID(selectedNum), ip,
+    nom:document.getElementById('fNom').value.trim(),
+    numero:document.getElementById('fNumero').value.trim(),
+    mac:document.getElementById('fMAC').value.trim().toUpperCase(),
+    local:document.getElementById('fLocal').value.trim(),
+    date:new Date().toLocaleString('fr-FR')
+  };
+
+  setSyncBar('syncing','Envoi en cours…');
+  let savedOnline=false;
+  try {
+    const r=ref(db,'sessions/'+session.key+'/clients');
+    await push(r, c);
+    savedOnline=true;
+    setSyncBar('online','Synchronisé ✓');
+  } catch(e){
+    const localKey='local_'+Date.now();
+    allClients[localKey]=c;
+    saveLocal();
+    setSyncBar('offline','Sauvegardé localement — sera synchronisé en ligne');
+  }
+
+  clearDraft();
+  document.getElementById('formSection').style.display='none';
+  document.getElementById('success').style.display='block';
+  document.getElementById('successMsg').textContent=
+    session.quartier+' · N°'+c.num+' · '+c.code+' · IP:'+c.ip+(c.nom?' · '+c.nom:'');
+  document.getElementById('saveStatus').innerHTML=savedOnline
+    ? '<div class="save-ok">☁️ Synchronisé sur Firebase — visible par toute l\'équipe</div>'
+    : '<div class="save-warn">⚠️ Hors-ligne — données locales. Se synchronisera dès reconnexion.</div>';
+  window.scrollTo(0,0);
+}
+window.saveClient=saveClient;
+
+function newClient(){
+  selectedNum=null;
+  document.getElementById('success').style.display='none';
+  document.getElementById('formSection').style.display='block';
+  ['fNom','fNumero','fMAC','fLocal'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('selectionInfo').style.display='none';
+  document.getElementById('selectionInfo').innerHTML='';
+  const b=document.getElementById('btnStep2'); b.disabled=true; b.style.opacity='0.4';
+  document.getElementById('step'+currentStep).classList.remove('active');
+  currentStep=1; document.getElementById('step1').classList.add('active');
+  document.getElementById('progressBar').style.width='20%';
+  document.getElementById('progressLabel').textContent='Étape 1 / 5';
+  renderGrid(); window.scrollTo(0,0);
+  updateTopBar();
+}
+window.newClient=newClient;
+
+// ── TABLE ──
+function renderTable(){
+  const clients=Object.values(allClients).sort((a,b)=>a.num-b.num);
+  const sec=document.getElementById('tableSection');
+  sec.style.display=clients.length?'block':'none';
+  document.getElementById('tableTitle').textContent=
+    (session?session.quartier+' · BASE '+session.base:'')+' : '+clients.length+' / '+Object.keys(CODES).length+' clients';
+  const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
+  clients.forEach((c,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td><span class="badge-num">'+c.num+'</span></td>'+
+      '<td><b>'+c.code+'</b></td><td>'+c.ssid+'</td><td>'+c.ip+'</td>'+
+      '<td>'+c.nom+'</td><td>'+c.numero+'</td><td><b>'+c.mac+'</b></td>'+
+      '<td>'+c.local+'</td><td>'+c.agent+'</td>'+
+      '<td><button class="btn-del" onclick="delClient(\''+Object.keys(allClients)[i]+'\')">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+window.renderTable=renderTable;
+
+async function delClient(k){
+  if(!confirm('Supprimer ce client ?')) return;
+  try { await remove(ref(db,'sessions/'+session.key+'/clients/'+k)); }
+  catch(e){ delete allClients[k]; saveLocal(); renderTable(); renderGrid(); }
+}
+window.delClient=delClient;
+
+function exportCSV(){
+  if (!session) { alert('Ouvrez une session pour exporter ses données.'); return; }
+  const clients=Object.values(allClients).sort((a,b)=>a.num-b.num);
+  if (!clients.length) { alert('Aucun client à exporter dans cette session.'); return; }
+  const header=['Agent','Quartier','Base','IP Session','N°','Code','SSID','IP Client','Nom','Téléphone','MAC','Localisation','Date'];
+  const rows=clients.map(c=>[c.agent,c.quartier,c.base,c.sessionIP,c.num,c.code,c.ssid,c.ip,c.nom,c.numero,c.mac,c.local,c.date]
+    .map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(','));
+  const csv=[header.join(','),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=session.quartier+'_BASE'+session.base+'.csv'; a.click();
+}
+window.exportCSV=exportCSV;
+
+// ── PWA INSTALL ──
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installBanner').style.display='block';
+});
+window.installApp=function(){
+  if(deferredPrompt){deferredPrompt.prompt(); deferredPrompt=null; document.getElementById('installBanner').style.display='none';}
+};
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const btn=document.querySelector('#step'+currentStep+' .btn-next:not([disabled]), #step'+currentStep+' .btn-confirm');
+    if(btn) btn.click();
+  }
+});
+
+// ── AUTOSAVE DRAFT ON INPUT ──
+['fNom','fNumero','fMAC','fLocal'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', saveDraft);
+});
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(reg => {
+      console.log('SW enregistré:', reg.scope);
+      // Vérifie activement s'il existe une nouvelle version à chaque ouverture
+      reg.update();
+
+      // Une nouvelle version a été trouvée et installée en arrière-plan
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated') {
+            // La nouvelle version est maintenant active : on recharge pour l'afficher
+            window.location.reload();
+          }
+        });
+      });
+    })
+    .catch(err => console.log('SW erreur:', err));
+
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data && event.data.type === 'NETWORK_BACK') {
+      setSyncBar('syncing', 'Réseau détecté — synchronisation…');
+      if (session) listenSession();
+    }
+  });
+
+  // Si le SW actif change (nouvelle version prend le contrôle), recharge une fois
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+}
+
+window.addEventListener('online', () => {
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then(sw => {
+      sw.sync.register('sync-clients').catch(() => {});
+    });
+  }
+  if (session) listenSession();
+});
+
+// ── INIT ──
+loadLocal();
+if (agent) showSessionScreen(false);
+else { document.getElementById('agentScreen').style.display='block'; document.getElementById('headerSub').textContent='Identification agent'; }
+updateTopBar();
+setSyncBar(navigator.onLine?'online':'offline', navigator.onLine?'Connecté':'Hors-ligne');
+</script>
+</body>
+</html>  .progress-label { font-size:0.78rem; color:#555; text-align:right; margin-bottom:5px; }
+  .progress-wrap  { background:#dce6f0; border-radius:20px; height:8px; margin-bottom:16px; overflow:hidden; }
+  .progress-bar   { background:#1a56a0; height:100%; border-radius:20px; transition:width 0.3s; }
+
+  .card { background:white; border-radius:20px; padding:18px 16px; box-shadow:0 2px 10px rgba(0,0,0,0.08); }
+  .step { display:none; animation:fadeIn 0.22s ease; }
+  .step.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;} }
+
+  .step-label  { display:inline-block; background:#e8f0fb; color:#1a56a0; font-size:0.76rem; font-weight:700; padding:4px 12px; border-radius:20px; margin-bottom:10px; }
+  .field-label { font-size:0.82rem; font-weight:600; color:#333; margin-bottom:6px; }
+  .field-hint  { font-size:0.73rem; color:#888; margin-bottom:8px; margin-top:-4px; }
+  .sec-title   { font-size:0.72rem; font-weight:700; color:#7c3aed; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+
+  input[type="text"],input[type="tel"],input[type="password"] {
+    width:100%; border:2px solid #dce6f0; border-radius:14px;
+    padding:13px 16px; font-size:1rem; outline:none;
+    transition:border-color 0.2s; background:#fafcff; margin-bottom:14px;
+  }
+  input:focus { border-color:#1a56a0; background:#fff; }
+  input[readonly] { background:#e8f0fb; color:#1a56a0; font-weight:700; cursor:default; border-color:#c7d9f0; }
+  input.error { border-color:#ef4444 !important; background:#fff5f5; }
+  .err-msg { color:#ef4444; font-size:0.76rem; margin-top:-10px; margin-bottom:10px; display:none; }
+
+  .btn-row { display:flex; gap:10px; margin-top:4px; }
+  button { flex:1; padding:13px; border:none; border-radius:14px; font-size:0.93rem; font-weight:600; cursor:pointer; transition:background 0.2s,transform 0.1s; }
+  button:active { transform:scale(0.97); }
+  .btn-next    { background:#1a56a0; color:white; }
+  .btn-prev    { background:#e8f0fb; color:#1a56a0; }
+  .btn-confirm { background:#16a34a; color:white; }
+  .btn-block   { width:100%; display:block; margin-top:8px; border-radius:14px; padding:12px; font-size:0.9rem; }
+  .btn-gray    { background:#f0f4f8; color:#1a56a0; border:2px solid #dce6f0; }
+
+  /* SESSION LIST */
+  .q-list { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+  .q-item { display:flex; align-items:center; justify-content:space-between; background:#f0f4f8; border:2px solid #dce6f0; border-radius:16px; padding:13px 16px; cursor:pointer; transition:all 0.15s; }
+  .q-item:hover { border-color:#1a56a0; background:#e8f0fb; }
+  .q-name  { font-weight:700; color:#1a56a0; font-size:0.9rem; }
+  .q-meta  { font-size:0.72rem; color:#888; margin-top:2px; }
+  .q-count { font-size:0.75rem; color:#16a34a; font-weight:700; white-space:nowrap; }
+  .q-divider { text-align:center; color:#aaa; font-size:0.78rem; margin:10px 0; }
+
+  /* AGENT BADGE */
+  .agent-badge { background:#e8f0fb; border-radius:14px; padding:9px 12px; font-size:0.8rem; color:#1a56a0; font-weight:600; margin-bottom:12px; text-align:center; }
+
+  /* NUMBER GRID */
+  .num-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:14px; max-height:300px; overflow-y:auto; }
+  .num-btn  { aspect-ratio:1; border:2px solid #dce6f0; border-radius:12px; background:white; font-size:0.76rem; font-weight:700; color:#1a56a0; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:3px 2px; transition:all 0.15s; }
+  .num-btn .nb-num  { font-size:0.88rem; }
+  .num-btn .nb-code { font-size:0.55rem; color:#888; font-weight:600; }
+  .num-btn:hover:not(.used) { background:#1a56a0; color:white; border-color:#1a56a0; }
+  .num-btn:hover:not(.used) .nb-code { color:#cde; }
+  .num-btn.selected { background:#1a56a0; color:white; border-color:#1a56a0; }
+  .num-btn.selected .nb-code { color:#cde; }
+  .num-btn.used { background:#f1f5f9; color:#b0bec5; border-color:#e2e8f0; cursor:not-allowed; }
+  .num-btn.used .nb-code { color:#ccc; }
+  .used-x { font-size:0.6rem; color:#22c55e; }
+  #selectionInfo { display:none; background:#e8f0fb; border-radius:14px; padding:11px 14px; margin-bottom:14px; font-size:0.84rem; color:#1a56a0; line-height:1.7; }
+
+  /* RECAP */
+  .recap-card { background:#f8faff; border:2px solid #1a56a0; border-radius:18px; padding:16px; margin-bottom:16px; }
+  .recap-title { font-size:0.8rem; font-weight:700; color:#1a56a0; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; text-align:center; }
+  .recap-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid #dce6f0; font-size:0.84rem; }
+  .recap-row:last-child { border-bottom:none; }
+  .recap-key { color:#666; font-weight:600; font-size:0.76rem; min-width:90px; }
+  .recap-val { color:#111; font-weight:700; text-align:right; word-break:break-all; }
+  .recap-val.auto   { color:#1a56a0; }
+  .recap-val.purple { color:#7c3aed; }
+  .recap-val.green  { color:#16a34a; }
+
+  /* SAVE STATUS */
+  .save-ok   { background:#dcfce7; color:#16a34a; border-radius:14px; padding:9px 12px; font-size:0.8rem; font-weight:600; text-align:center; margin-top:10px; }
+  .save-warn { background:#fffbeb; border:2px solid #f59e0b; color:#b45309; border-radius:14px; padding:10px 12px; font-size:0.8rem; text-align:center; margin-top:10px; }
+
+  /* SUCCESS */
+  #success { display:none; text-align:center; padding:6px 0; }
+  #success .check-circle { width:56px; height:56px; border-radius:50%; background:#dcfce7; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+  #success .check-circle svg { width:28px; height:28px; color:#16a34a; }
+  #success h2 { color:#16a34a; font-size:1.05rem; }
+  #success p  { font-size:0.82rem; color:#555; margin-top:4px; }
+
+  /* TABLE */
+  #tableSection { margin-top:16px; display:none; }
+  #tableSection h3 { font-size:0.86rem; font-weight:700; color:#1a56a0; margin-bottom:8px; }
+  .table-wrap { overflow-x:auto; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,0.07); }
+  table { width:100%; border-collapse:collapse; background:white; font-size:0.7rem; }
+  th { background:#1a56a0; color:white; padding:7px 8px; text-align:left; white-space:nowrap; }
+  td { padding:6px 8px; border-bottom:1px solid #edf2f7; white-space:nowrap; }
+  tr:last-child td { border-bottom:none; }
+  tr:nth-child(even) td { background:#f7faff; }
+  .badge-num { background:#e8f0fb; color:#1a56a0; font-weight:700; font-size:0.66rem; padding:1px 6px; border-radius:10px; }
+  .btn-del   { background:#fee2e2; color:#b91c1c; border:none; border-radius:8px; padding:3px 7px; font-size:0.68rem; cursor:pointer; flex:none; }
+
+  /* INSTALL BANNER */
+  #installBanner { display:none; background:#1a56a0; color:white; border-radius:16px; padding:12px 14px; margin-bottom:14px; }
+  #installBanner p { font-size:0.82rem; margin-bottom:8px; }
+  #installBanner button { background:white; color:#1a56a0; border:none; border-radius:10px; padding:8px 16px; font-weight:700; font-size:0.85rem; cursor:pointer; }
+
+  /* ── BOTTOM ACTION BAR ── */
+  #bottomBar {
+    position:fixed; left:0; right:0; bottom:0;
+    background:white; border-top:1px solid #e1e8f0;
+    box-shadow:0 -2px 10px rgba(0,0,0,0.06);
+    display:flex; align-items:center; justify-content:space-around;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .bb-btn {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:none; border:none; color:#7e8ba3; cursor:pointer;
+    font-size:0.65rem; font-weight:600; flex:1; padding:4px; transition:color 0.15s, transform 0.12s;
+  }
+  .bb-btn:active { transform:scale(0.9); }
+  .bb-btn svg { width:22px; height:22px; }
+  .bb-btn.primary { color:#1a56a0; }
+  .bb-btn.accent  { color:#7c3aed; }
+</style>
+</head>
+<body>
+
+<!-- INSTALL BANNER -->
+<div id="installBanner">
+  <p>📲 Installez cette appli sur votre écran d'accueil pour l'utiliser hors-ligne !</p>
+  <button onclick="installApp()">Installer l'application</button>
+</div>
+
+<!-- TOP BAR -->
+<div id="headerWrap">
+  <header>
+    <h1>Enregistrement Clients</h1>
+    <p id="headerSub">Chargement…</p>
+    <div class="hbadge" id="headerBadge" style="display:none"></div>
+  </header>
+</div>
+
+<!-- SYNC BAR -->
+<div id="syncBar" class="syncing">
+  <span class="dot blue" id="syncDot"></span>
+  <span id="syncMsg">Connexion à Firebase…</span>
+</div>
+
+<!-- ══ ÉCRAN AGENT (login) ══ -->
+<div id="agentScreen" class="card" style="display:none">
+  <div class="sec-title">Identification agent</div>
+  <div class="field-label">Votre nom / prénom</div>
+  <input type="text" id="agentName" placeholder="ex: Kokou, Marie …">
+  <div class="btn-row">
+    <button class="btn-next" onclick="setAgent()">Continuer →</button>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN SESSION (= accueil) ══ -->
+<div id="sessionScreen" class="card" style="display:none">
+  <div id="agentInfo" class="agent-badge"></div>
   <div class="sec-title">Sessions disponibles</div>
   <div id="qList" class="q-list"></div>
   <div class="q-divider">— Nouvelle session —</div>
