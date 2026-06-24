@@ -661,7 +661,8 @@ function renderGrid() {
   const used=usedNums();
   const grid=document.getElementById('numGrid');
   grid.innerHTML='';
-  for(let n=1;n<=66;n++){
+  const maxN = Math.max(...Object.keys(CODES).map(Number));
+  for(let n=1;n<=maxN;n++){
     const isUsed=used.includes(n);
     const btn=document.createElement('button');
     btn.className='num-btn'+(isUsed?' used':'')+(selectedNum===n?' selected':'');
@@ -792,7 +793,7 @@ function renderTable(){
   const sec=document.getElementById('tableSection');
   sec.style.display=clients.length?'block':'none';
   document.getElementById('tableTitle').textContent=
-    (session?session.quartier+' · BASE '+session.base:'')+' : '+clients.length+' / 66 clients';
+    (session?session.quartier+' · BASE '+session.base:'')+' : '+clients.length+' / '+Object.keys(CODES).length+' clients';
   const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
   clients.forEach((c,i)=>{
     const tr=document.createElement('tr');
