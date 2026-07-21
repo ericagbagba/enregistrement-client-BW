@@ -3,29 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1a56a0">
+<meta name="theme-color" content="#1a56a0" id="metaThemeColor">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Clients Terrain">
 <link rel="manifest" href="manifest.json">
 <title>Enregistrement Clients</title>
+<script>
+  // Applique le theme (clair/sombre) le plus tot possible pour eviter le flash
+  (function(){
+    try {
+      var t = localStorage.getItem('app_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch(e){}
+  })();
+</script>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f4f8; min-height:100vh; padding:14px 14px 86px; }
+
+  :root {
+    --bg:#f0f4f8;
+    --card-bg:#ffffff;
+    --text:#111111;
+    --text-soft:#555555;
+    --text-faint:#888888;
+    --header-bg:#1a56a0;
+    --header-text:#ffffff;
+    --input-bg:#fafcff;
+    --input-border:#dce6f0;
+    --input-text:#111111;
+    --readonly-bg:#e8f0fb;
+    --readonly-text:#1a56a0;
+    --btn-prev-bg:#e8f0fb;
+    --btn-prev-text:#1a56a0;
+    --shadow:rgba(0,0,0,0.08);
+    --divider:#dce6f0;
+    --qitem-bg:#f0f4f8;
+    --qitem-border:#dce6f0;
+    --qitem-hover-bg:#e8f0fb;
+    --table-bg:#ffffff;
+    --table-row-alt:#f7faff;
+    --table-border:#edf2f7;
+    --num-bg:#ffffff;
+    --num-border:#dce6f0;
+    --used-bg:#f1f5f9;
+    --used-text:#b0bec5;
+    --used-border:#e2e8f0;
+    --bottombar-bg:#ffffff;
+    --bottombar-border:#e1e8f0;
+    --recap-bg:#f8faff;
+  }
+  [data-theme="dark"] {
+    --bg:#0f1620;
+    --card-bg:#182233;
+    --text:#e7edf5;
+    --text-soft:#aab4c4;
+    --text-faint:#7c8797;
+    --header-bg:#123a75;
+    --header-text:#ffffff;
+    --input-bg:#101927;
+    --input-border:#2a3648;
+    --input-text:#e7edf5;
+    --readonly-bg:#16233a;
+    --readonly-text:#7fb2f0;
+    --btn-prev-bg:#1c2d47;
+    --btn-prev-text:#7fb2f0;
+    --shadow:rgba(0,0,0,0.35);
+    --divider:#28344a;
+    --qitem-bg:#141d2b;
+    --qitem-border:#28344a;
+    --qitem-hover-bg:#1c2d47;
+    --table-bg:#182233;
+    --table-row-alt:#131c29;
+    --table-border:#243248;
+    --num-bg:#141d2b;
+    --num-border:#28344a;
+    --used-bg:#101722;
+    --used-text:#4a5568;
+    --used-border:#1c2634;
+    --bottombar-bg:#182233;
+    --bottombar-border:#28344a;
+    --recap-bg:#131c29;
+  }
+
+  body { font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); min-height:100vh; padding:14px 14px 86px; transition:background 0.2s,color 0.2s; }
 
   /* ── TOP BAR ── */
   #headerWrap { position:relative; margin-bottom:14px; }
 
-  header { background:#1a56a0; color:white; padding:16px 18px 12px; border-radius:18px; text-align:center; }
+  header { background:var(--header-bg); color:var(--header-text); padding:16px 18px 12px; border-radius:18px; text-align:center; position:relative; }
   header h1 { font-size:1.2rem; font-weight:700; }
   header p  { font-size:0.8rem; opacity:0.85; margin-top:4px; }
   .hbadge { display:inline-block; background:rgba(255,255,255,0.2); border-radius:20px; padding:3px 12px; font-size:0.78rem; font-weight:700; margin-top:6px; }
+
+  #themeToggle {
+    position:absolute; top:12px; right:12px; height:28px; border-radius:14px;
+    background:rgba(255,255,255,0.18); border:none; color:white; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:0.72rem;
+    font-weight:700; padding:0 12px; white-space:nowrap;
+  }
+  #themeToggle:active { transform:scale(0.92); }
 
   /* SYNC STATUS BAR */
   #syncBar { display:flex; align-items:center; justify-content:center; gap:8px; padding:7px 12px; border-radius:12px; font-size:0.76rem; font-weight:600; margin-bottom:12px; }
   #syncBar.online  { background:#dcfce7; color:#16a34a; }
   #syncBar.offline { background:#fef9c3; color:#b45309; }
-  #syncBar.syncing { background:#e8f0fb; color:#1a56a0; }
+  #syncBar.syncing { background:var(--readonly-bg); color:var(--readonly-text); }
   #syncBar.error   { background:#fee2e2; color:#b91c1c; }
   .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
   .dot.green  { background:#16a34a; }
@@ -34,75 +117,86 @@
   .dot.red    { background:#ef4444; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-  .progress-label { font-size:0.78rem; color:#555; text-align:right; margin-bottom:5px; }
-  .progress-wrap  { background:#dce6f0; border-radius:20px; height:8px; margin-bottom:16px; overflow:hidden; }
-  .progress-bar   { background:#1a56a0; height:100%; border-radius:20px; transition:width 0.3s; }
+  .progress-label { font-size:0.78rem; color:var(--text-soft); text-align:right; margin-bottom:5px; }
+  .progress-wrap  { background:var(--divider); border-radius:20px; height:8px; margin-bottom:16px; overflow:hidden; }
+  .progress-bar   { background:var(--header-bg); height:100%; border-radius:20px; transition:width 0.3s; }
 
-  .card { background:white; border-radius:20px; padding:18px 16px; box-shadow:0 2px 10px rgba(0,0,0,0.08); }
+  .card { background:var(--card-bg); border-radius:20px; padding:18px 16px; box-shadow:0 2px 10px var(--shadow); }
   .step { display:none; animation:fadeIn 0.22s ease; }
   .step.active { display:block; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;} }
 
-  .step-label  { display:inline-block; background:#e8f0fb; color:#1a56a0; font-size:0.76rem; font-weight:700; padding:4px 12px; border-radius:20px; margin-bottom:10px; }
-  .field-label { font-size:0.82rem; font-weight:600; color:#333; margin-bottom:6px; }
-  .field-hint  { font-size:0.73rem; color:#888; margin-bottom:8px; margin-top:-4px; }
+  .step-label  { display:inline-block; background:var(--readonly-bg); color:var(--readonly-text); font-size:0.76rem; font-weight:700; padding:4px 12px; border-radius:20px; margin-bottom:10px; }
+  .field-label { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .field-hint  { font-size:0.73rem; color:var(--text-faint); margin-bottom:8px; margin-top:-4px; }
   .sec-title   { font-size:0.72rem; font-weight:700; color:#7c3aed; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
 
   input[type="text"],input[type="tel"],input[type="password"] {
-    width:100%; border:2px solid #dce6f0; border-radius:14px;
-    padding:13px 16px; font-size:1rem; outline:none;
-    transition:border-color 0.2s; background:#fafcff; margin-bottom:14px;
+    width:100%; border:2px solid var(--input-border); border-radius:14px;
+    padding:13px 16px; font-size:1rem; outline:none; color:var(--input-text);
+    transition:border-color 0.2s; background:var(--input-bg); margin-bottom:14px;
   }
-  input:focus { border-color:#1a56a0; background:#fff; }
-  input[readonly] { background:#e8f0fb; color:#1a56a0; font-weight:700; cursor:default; border-color:#c7d9f0; }
+  input:focus { border-color:#1a56a0; }
+  input[readonly] { background:var(--readonly-bg); color:var(--readonly-text); font-weight:700; cursor:default; border-color:var(--input-border); }
   input.error { border-color:#ef4444 !important; background:#fff5f5; }
+  [data-theme="dark"] input.error { background:#2a1414; }
   .err-msg { color:#ef4444; font-size:0.76rem; margin-top:-10px; margin-bottom:10px; display:none; }
 
   .btn-row { display:flex; gap:10px; margin-top:4px; }
   button { flex:1; padding:13px; border:none; border-radius:14px; font-size:0.93rem; font-weight:600; cursor:pointer; transition:background 0.2s,transform 0.1s; }
   button:active { transform:scale(0.97); }
+  button:disabled { opacity:0.5; cursor:not-allowed; }
   .btn-next    { background:#1a56a0; color:white; }
-  .btn-prev    { background:#e8f0fb; color:#1a56a0; }
+  .btn-prev    { background:var(--btn-prev-bg); color:var(--btn-prev-text); }
   .btn-confirm { background:#16a34a; color:white; }
   .btn-block   { width:100%; display:block; margin-top:8px; border-radius:14px; padding:12px; font-size:0.9rem; }
-  .btn-gray    { background:#f0f4f8; color:#1a56a0; border:2px solid #dce6f0; }
+  .btn-gray    { background:var(--bg); color:#1a56a0; border:2px solid var(--input-border); }
+
+  /* PERSONNES (multi) */
+  .person-card { background:var(--bg); border:2px solid var(--divider); border-radius:16px; padding:12px 12px 2px; margin-bottom:12px; position:relative; }
+  .person-card .person-title { font-size:0.78rem; font-weight:700; color:#7c3aed; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+  .btn-remove-person { flex:none; background:#fee2e2; color:#b91c1c; border:none; border-radius:8px; padding:4px 9px; font-size:0.7rem; cursor:pointer; }
+  .btn-add-person { background:var(--readonly-bg); color:var(--readonly-text); border:2px dashed var(--input-border); width:100%; padding:12px; border-radius:14px; font-size:0.85rem; font-weight:700; margin-bottom:14px; cursor:pointer; }
 
   /* SESSION LIST */
   .q-list { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
-  .q-item { display:flex; align-items:center; justify-content:space-between; background:#f0f4f8; border:2px solid #dce6f0; border-radius:16px; padding:13px 16px; cursor:pointer; transition:all 0.15s; }
-  .q-item:hover { border-color:#1a56a0; background:#e8f0fb; }
-  .q-name  { font-weight:700; color:#1a56a0; font-size:0.9rem; }
-  .q-meta  { font-size:0.72rem; color:#888; margin-top:2px; }
+  .q-item { display:flex; align-items:center; justify-content:space-between; background:var(--qitem-bg); border:2px solid var(--qitem-border); border-radius:16px; padding:13px 16px; cursor:pointer; transition:all 0.15s; }
+  .q-item:hover { border-color:#1a56a0; background:var(--qitem-hover-bg); }
+  .q-name  { font-weight:700; color:var(--readonly-text); font-size:0.9rem; }
+  .q-meta  { font-size:0.72rem; color:var(--text-faint); margin-top:2px; }
   .q-count { font-size:0.75rem; color:#16a34a; font-weight:700; white-space:nowrap; }
-  .q-divider { text-align:center; color:#aaa; font-size:0.78rem; margin:10px 0; }
+  .q-divider { text-align:center; color:var(--text-faint); font-size:0.78rem; margin:10px 0; }
 
   /* AGENT BADGE */
-  .agent-badge { background:#e8f0fb; border-radius:14px; padding:9px 12px; font-size:0.8rem; color:#1a56a0; font-weight:600; margin-bottom:12px; text-align:center; }
+  .agent-badge { background:var(--readonly-bg); border-radius:14px; padding:9px 12px; font-size:0.8rem; color:var(--readonly-text); font-weight:600; margin-bottom:12px; text-align:center; }
 
   /* NUMBER GRID */
   .num-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:14px; max-height:300px; overflow-y:auto; }
-  .num-btn  { aspect-ratio:1; border:2px solid #dce6f0; border-radius:12px; background:white; font-size:0.76rem; font-weight:700; color:#1a56a0; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:3px 2px; transition:all 0.15s; }
+  .num-btn  { aspect-ratio:1; border:2px solid var(--num-border); border-radius:12px; background:var(--num-bg); font-size:0.76rem; font-weight:700; color:var(--readonly-text); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:3px 2px; transition:all 0.15s; }
   .num-btn .nb-num  { font-size:0.88rem; }
-  .num-btn .nb-code { font-size:0.55rem; color:#888; font-weight:600; }
+  .num-btn .nb-code { font-size:0.55rem; color:var(--text-faint); font-weight:600; }
   .num-btn:hover:not(.used) { background:#1a56a0; color:white; border-color:#1a56a0; }
   .num-btn:hover:not(.used) .nb-code { color:#cde; }
   .num-btn.selected { background:#1a56a0; color:white; border-color:#1a56a0; }
   .num-btn.selected .nb-code { color:#cde; }
-  .num-btn.used { background:#f1f5f9; color:#b0bec5; border-color:#e2e8f0; cursor:not-allowed; }
-  .num-btn.used .nb-code { color:#ccc; }
+  .num-btn.used { background:var(--used-bg); color:var(--used-text); border-color:var(--used-border); cursor:not-allowed; }
+  .num-btn.used .nb-code { color:var(--used-text); }
   .used-x { font-size:0.6rem; color:#22c55e; }
-  #selectionInfo { display:none; background:#e8f0fb; border-radius:14px; padding:11px 14px; margin-bottom:14px; font-size:0.84rem; color:#1a56a0; line-height:1.7; }
+  #selectionInfo { display:none; background:var(--readonly-bg); border-radius:14px; padding:11px 14px; margin-bottom:14px; font-size:0.84rem; color:var(--readonly-text); line-height:1.7; }
 
   /* RECAP */
-  .recap-card { background:#f8faff; border:2px solid #1a56a0; border-radius:18px; padding:16px; margin-bottom:16px; }
-  .recap-title { font-size:0.8rem; font-weight:700; color:#1a56a0; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; text-align:center; }
-  .recap-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid #dce6f0; font-size:0.84rem; }
+  .recap-card { background:var(--recap-bg); border:2px solid #1a56a0; border-radius:18px; padding:16px; margin-bottom:16px; }
+  .recap-title { font-size:0.8rem; font-weight:700; color:var(--readonly-text); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; text-align:center; }
+  .recap-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--divider); font-size:0.84rem; }
   .recap-row:last-child { border-bottom:none; }
-  .recap-key { color:#666; font-weight:600; font-size:0.76rem; min-width:90px; }
-  .recap-val { color:#111; font-weight:700; text-align:right; word-break:break-all; }
-  .recap-val.auto   { color:#1a56a0; }
+  .recap-key { color:var(--text-soft); font-weight:600; font-size:0.76rem; min-width:90px; }
+  .recap-val { color:var(--text); font-weight:700; text-align:right; word-break:break-all; }
+  .recap-val.auto   { color:var(--readonly-text); }
   .recap-val.purple { color:#7c3aed; }
   .recap-val.green  { color:#16a34a; }
+  .recap-persons { margin-top:6px; }
+  .recap-person-row { display:flex; justify-content:space-between; font-size:0.82rem; padding:5px 0; border-bottom:1px dashed var(--divider); }
+  .recap-person-row:last-child { border-bottom:none; }
 
   /* SAVE STATUS */
   .save-ok   { background:#dcfce7; color:#16a34a; border-radius:14px; padding:9px 12px; font-size:0.8rem; font-weight:600; text-align:center; margin-top:10px; }
@@ -113,20 +207,22 @@
   #success .check-circle { width:56px; height:56px; border-radius:50%; background:#dcfce7; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
   #success .check-circle svg { width:28px; height:28px; color:#16a34a; }
   #success h2 { color:#16a34a; font-size:1.05rem; }
-  #success p  { font-size:0.82rem; color:#555; margin-top:4px; }
+  #success p  { font-size:0.82rem; color:var(--text-soft); margin-top:4px; }
 
   /* TABLE */
   #tableSection { margin-top:16px; display:none; }
-  #tableSection h3 { font-size:0.86rem; font-weight:700; color:#1a56a0; margin-bottom:8px; }
-  .table-wrap { overflow-x:auto; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,0.07); }
-  table { width:100%; border-collapse:collapse; background:white; font-size:0.7rem; }
+  #tableSection h3 { font-size:0.86rem; font-weight:700; color:var(--readonly-text); margin-bottom:8px; }
+  .table-wrap { overflow-x:auto; border-radius:16px; box-shadow:0 2px 8px var(--shadow); }
+  table { width:100%; border-collapse:collapse; background:var(--table-bg); font-size:0.7rem; }
   th { background:#1a56a0; color:white; padding:7px 8px; text-align:left; white-space:nowrap; }
-  td { padding:6px 8px; border-bottom:1px solid #edf2f7; white-space:nowrap; }
+  td { padding:6px 8px; border-bottom:1px solid var(--table-border); color:var(--text); }
   tr:last-child td { border-bottom:none; }
-  tr:nth-child(even) td { background:#f7faff; }
-  .badge-num { background:#e8f0fb; color:#1a56a0; font-weight:700; font-size:0.66rem; padding:1px 6px; border-radius:10px; }
+  tr:nth-child(even) td { background:var(--table-row-alt); }
+  .badge-num { background:var(--readonly-bg); color:var(--readonly-text); font-weight:700; font-size:0.66rem; padding:1px 6px; border-radius:10px; }
   .btn-del   { background:#fee2e2; color:#b91c1c; border:none; border-radius:8px; padding:3px 7px; font-size:0.68rem; cursor:pointer; flex:none; }
-  .btn-edit  { background:#e8f0fb; color:#1a56a0; border:none; border-radius:8px; padding:3px 7px; font-size:0.68rem; cursor:pointer; flex:none; margin-right:4px; }
+  .btn-edit  { background:var(--readonly-bg); color:var(--readonly-text); border:none; border-radius:8px; padding:3px 7px; font-size:0.68rem; cursor:pointer; flex:none; margin-right:4px; }
+  .person-line { white-space:nowrap; }
+  .person-line + .person-line { margin-top:2px; }
 
   /* INSTALL BANNER */
   #installBanner { display:none; background:#1a56a0; color:white; border-radius:16px; padding:12px 14px; margin-bottom:14px; }
@@ -136,8 +232,8 @@
   /* ── BOTTOM ACTION BAR ── */
   #bottomBar {
     position:fixed; left:0; right:0; bottom:0;
-    background:white; border-top:1px solid #e1e8f0;
-    box-shadow:0 -2px 10px rgba(0,0,0,0.06);
+    background:var(--bottombar-bg); border-top:1px solid var(--bottombar-border);
+    box-shadow:0 -2px 10px var(--shadow);
     display:flex; align-items:center; justify-content:space-around;
     padding:10px 16px calc(10px + env(safe-area-inset-bottom));
     z-index:50;
@@ -155,21 +251,31 @@
   /* EDIT MODAL */
   #editOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; align-items:center; justify-content:center; padding:16px; }
   #editOverlay.show { display:flex; }
-  .edit-card { background:white; border-radius:20px; padding:20px 18px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; }
-  .edit-card h3 { color:#1a56a0; font-size:1rem; margin-bottom:14px; text-align:center; }
+  .edit-card { background:var(--card-bg); border-radius:20px; padding:20px 18px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; }
+  .edit-card h3 { color:var(--readonly-text); font-size:1rem; margin-bottom:14px; text-align:center; }
+
+  /* TOAST */
+  #toast {
+    position:fixed; left:50%; bottom:100px; transform:translateX(-50%) translateY(20px);
+    background:#16a34a; color:white; padding:11px 18px; border-radius:14px;
+    font-size:0.85rem; font-weight:600; box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    z-index:200; opacity:0; pointer-events:none; transition:all 0.25s ease;
+  }
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
 <!-- INSTALL BANNER -->
 <div id="installBanner">
-  <p>📲 Installez cette appli sur votre écran d'accueil pour l'utiliser hors-ligne !</p>
+  <p>Installez cette appli sur votre écran d'accueil !</p>
   <button onclick="installApp()">Installer l'application</button>
 </div>
 
 <!-- TOP BAR -->
 <div id="headerWrap">
   <header>
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Changer de theme">Sombre</button>
     <h1>Enregistrement Clients</h1>
     <p id="headerSub">Chargement…</p>
     <div class="hbadge" id="headerBadge" style="display:none"></div>
@@ -216,13 +322,13 @@
 
 <!-- ══ FORMULAIRE ══ -->
 <div id="formSection" style="display:none">
-  <div class="progress-label" id="progressLabel">Étape 1 / 5</div>
-  <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:20%"></div></div>
+  <div class="progress-label" id="progressLabel">Étape 1 / 4</div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:25%"></div></div>
   <div class="card">
 
     <div class="step active" id="step1">
-      <div class="step-label">Étape 1 / 5 — Numéro</div>
-      <div style="font-size:0.76rem;color:#666;margin-bottom:8px">Appuyez sur un numéro (✓ = déjà pris)</div>
+      <div class="step-label">Étape 1 / 4 — Numéro</div>
+      <div style="font-size:0.76rem;color:var(--text-soft);margin-bottom:8px">Appuyez sur un numéro (✓ = déjà pris)</div>
       <div class="num-grid" id="numGrid"></div>
       <div id="selectionInfo"></div>
       <div class="btn-row">
@@ -231,29 +337,19 @@
     </div>
 
     <div class="step" id="step2">
-      <div class="step-label">Étape 2 / 5 — Nom</div>
+      <div class="step-label">Étape 2 / 4 — Infos client </div>
       <div class="field-label">Infos automatiques</div>
       <input type="text" id="fAutoInfo" readonly>
-      <div class="field-label">Nom complet du client</div>
-      <input type="text" id="fNom" placeholder="Prénom et Nom …">
+      <div id="personsList"></div>
+      <button type="button" class="btn-add-person" onclick="addPersonRow()">➕ Ajouter une personne</button>
       <div class="btn-row">
         <button class="btn-prev" onclick="goStep(1)">← Retour</button>
-        <button class="btn-next" onclick="goStep(3)">Suivant →</button>
+        <button class="btn-next" onclick="validateStep2()">Suivant →</button>
       </div>
     </div>
 
     <div class="step" id="step3">
-      <div class="step-label">Étape 3 / 5 — Téléphone</div>
-      <div class="field-label">Numéro de téléphone</div>
-      <input type="tel" id="fNumero" placeholder="ex: 90092671" inputmode="tel">
-      <div class="btn-row">
-        <button class="btn-prev" onclick="goStep(2)">← Retour</button>
-        <button class="btn-next" onclick="goStep(4)">Suivant →</button>
-      </div>
-    </div>
-
-    <div class="step" id="step4">
-      <div class="step-label">Étape 4 / 5 — MAC & Localisation</div>
+      <div class="step-label">Étape 3 / 4 — MAC & Localisation</div>
       <div class="field-label">Adresse MAC (4 caractères)</div>
       <div class="field-hint">Lettres et chiffres uniquement ex: A3F2</div>
       <input type="text" id="fMAC" placeholder="ex: A3F2" maxlength="4" style="text-transform:uppercase;letter-spacing:4px;font-size:1.3rem;font-weight:700;">
@@ -261,12 +357,12 @@
       <div class="field-label">Localisation</div>
       <input type="text" id="fLocal" placeholder="ex: 865H+M …">
       <div class="btn-row">
-        <button class="btn-prev" onclick="goStep(3)">← Retour</button>
-        <button class="btn-next" onclick="validateStep4()">Suivant →</button>
+        <button class="btn-prev" onclick="goStep(2)">← Retour</button>
+        <button class="btn-next" onclick="validateStep3()">Suivant →</button>
       </div>
     </div>
 
-    <div class="step" id="step5">
+    <div class="step" id="step4">
       <div class="step-label">✅ Récapitulatif</div>
       <div class="recap-card">
         <div class="recap-title">📄 Fiche Client</div>
@@ -277,14 +373,13 @@
         <div class="recap-row"><span class="recap-key">Code</span>          <span class="recap-val auto"   id="rCode"></span></div>
         <div class="recap-row"><span class="recap-key">A. SSID</span>       <span class="recap-val auto"   id="rSSID"></span></div>
         <div class="recap-row"><span class="recap-key">IP Client</span>     <span class="recap-val green"  id="rIP"></span></div>
-        <div class="recap-row"><span class="recap-key">Nom</span>           <span class="recap-val"        id="rNom"></span></div>
-        <div class="recap-row"><span class="recap-key">Téléphone</span>     <span class="recap-val"        id="rNumero"></span></div>
         <div class="recap-row"><span class="recap-key">Adresse MAC</span>   <span class="recap-val green"  id="rMAC"></span></div>
         <div class="recap-row"><span class="recap-key">Localisation</span>  <span class="recap-val"        id="rLocal"></span></div>
+        <div class="recap-persons" id="rPersons"></div>
       </div>
       <div class="btn-row">
-        <button class="btn-prev" onclick="goStep(4)">← Modifier</button>
-        <button class="btn-confirm" onclick="saveClient()">✅ Confirmer</button>
+        <button class="btn-prev" onclick="goStep(3)">← Modifier</button>
+        <button class="btn-confirm" id="btnConfirm" onclick="saveClient()">✅ Confirmer</button>
       </div>
     </div>
 
@@ -308,7 +403,7 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>N°</th><th>Code</th><th>SSID</th><th>IP</th><th>Nom</th><th>Tél</th><th>MAC</th><th>Local.</th><th>Agent</th><th></th></tr>
+        <tr><th>N°</th><th>Code</th><th>SSID</th><th>IP</th><th>Personnes</th><th>MAC</th><th>Local.</th><th>Agent</th><th></th></tr>
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
@@ -319,21 +414,22 @@
 <div id="editOverlay">
   <div class="edit-card">
     <h3>✏️ Modifier le client</h3>
-    <div class="field-label">Nom complet</div>
-    <input type="text" id="eNom" placeholder="Nom du client">
-    <div class="field-label">Téléphone</div>
-    <input type="tel" id="eNumero" placeholder="Téléphone">
     <div class="field-label">Adresse MAC</div>
     <input type="text" id="eMAC" maxlength="4" placeholder="ex: A3F2" style="text-transform:uppercase;letter-spacing:2px">
     <span class="err-msg" id="eMacErr">❌ 4 caractères alphanumériques requis</span>
     <div class="field-label">Localisation</div>
     <input type="text" id="eLocal" placeholder="Localisation">
+    <div id="editPersonsList"></div>
+    <button type="button" class="btn-add-person" onclick="addEditPersonRow()">➕ Ajouter une personne</button>
     <div class="btn-row">
       <button class="btn-prev" onclick="closeEditModal()">Annuler</button>
       <button class="btn-next" onclick="saveEditClient()">💾 Enregistrer</button>
     </div>
   </div>
 </div>
+
+<!-- TOAST -->
+<div id="toast"></div>
 
 <!-- ══ BARRE D'ACTIONS EN BAS ══ -->
 <div id="bottomBar">
@@ -347,7 +443,7 @@
   </button>
   <button class="bb-btn accent" id="bbExport" onclick="exportCSV()" aria-label="Télécharger CSV">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-    <span>CSV</span>
+    <span>Telecharger</span>
   </button>
 </div>
 
@@ -414,11 +510,9 @@ function parseIP(s) {
 }
 function validateIP(s) {
   const v = s.trim();
-  // Format strict : 4 blocs séparés par des points, chacun 0-255, pas de "/masque"
   if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v)) return false;
   const p = parseIP(v);
   if (!p) return false;
-  // Norme réseau : le dernier bloc doit être 0 (adresse de base réseau)
   if (p[3] !== 0) return false;
   return true;
 }
@@ -430,6 +524,53 @@ function calcIP(base, rules, n) {
   return (v0%256)+'.'+(v1%256)+'.'+(v2%256)+'.'+(v3%256);
 }
 
+// ── TÉLÉPHONE (Togo : 8 chiffres, indicatif +228 ignoré) ──
+function normalizePhone(raw){
+  let digits = (raw||'').replace(/\D/g,''); // ne garde que les chiffres
+  if (digits.startsWith('00228') && digits.length === 13) digits = digits.slice(5);
+  else if (digits.startsWith('228') && digits.length === 11) digits = digits.slice(3);
+  return digits;
+}
+function isValidPhone(raw){
+  if (!raw || !raw.trim()) return true; // champ vide toléré
+  return /^\d{8}$/.test(normalizePhone(raw));
+}
+
+// ── HELPERS PERSONNES (migration ancien format <-> nouveau format) ──
+function getPersons(c) {
+  if (Array.isArray(c.personnes) && c.personnes.length) return c.personnes;
+  if (c.nom || c.numero) return [{nom:c.nom||'', numero:c.numero||''}];
+  return [{nom:'', numero:''}];
+}
+
+// ── THEME ──
+function applyThemeIcon(){
+  const t = document.documentElement.getAttribute('data-theme') || 'light';
+  const btn = document.getElementById('themeToggle');
+  // Le bouton indique le mode vers lequel on bascule en cliquant
+  if (btn) btn.textContent = t === 'dark' ? 'Clair' : 'Sombre';
+  const meta = document.getElementById('metaThemeColor');
+  if (meta) meta.setAttribute('content', t === 'dark' ? '#123a75' : '#1a56a0');
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('app_theme', next); } catch(e){}
+  applyThemeIcon();
+}
+window.toggleTheme = toggleTheme;
+
+// ── TOAST ──
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
 // ── STATE ──
 let agent       = localStorage.getItem('agent_name') || null;
 let session     = null;
@@ -439,7 +580,9 @@ let currentStep = 1;
 let dbListener  = null;
 let isOnline    = navigator.onLine;
 let editingKey  = null;
-// Navigation history for the global back button
+let isSaving    = false;
+let personRows  = [];      // {nom, numero} en cours de saisie (étape 2)
+let editPersonRows = [];   // idem pour la modale d'édition
 
 // ── SYNC BAR ──
 function setSyncBar(state, msg) {
@@ -468,10 +611,10 @@ function loadLocal() {
 const DRAFT_KEY = 'client_draft';
 function saveDraft(){
   if (!session) return;
+  syncPersonRowsFromDOM();
   const draft = {
     sessionKey: session.key, step: currentStep, selectedNum: selectedNum,
-    nom: document.getElementById('fNom').value,
-    numero: document.getElementById('fNumero').value,
+    personnes: personRows,
     mac: document.getElementById('fMAC').value,
     local: document.getElementById('fLocal').value,
     savedAt: Date.now()
@@ -493,13 +636,14 @@ function restoreDraftIfAny(){
   const d = loadDraft();
   if (!d) return;
   if (usedNums().includes(d.selectedNum)) { clearDraft(); return; }
-  if (!confirm('📝 Une saisie inachevée a été retrouvée (N°'+d.selectedNum+(d.nom?' · '+d.nom:'')+').\n\nVoulez-vous la reprendre ?')) {
+  const firstNom = (d.personnes && d.personnes[0] && d.personnes[0].nom) || '';
+  if (!confirm('📝 Une saisie inachevée a été retrouvée (N°'+d.selectedNum+(firstNom?' · '+firstNom:'')+').\n\nVoulez-vous la reprendre ?')) {
     clearDraft(); return;
   }
   selectedNum = d.selectedNum;
   renderGrid();
-  document.getElementById('fNom').value    = d.nom||'';
-  document.getElementById('fNumero').value = d.numero||'';
+  personRows = (d.personnes && d.personnes.length) ? d.personnes : [{nom:'',numero:''}];
+  renderPersonRows();
   document.getElementById('fMAC').value    = d.mac||'';
   document.getElementById('fLocal').value  = d.local||'';
   const b=document.getElementById('btnStep2');
@@ -508,7 +652,7 @@ function restoreDraftIfAny(){
   const ip=calcIP(session.ip,session.rules,selectedNum);
   info.style.display='block';
   info.innerHTML='✅ <b>N°'+selectedNum+'</b> · Code:<b>'+CODES[selectedNum]+'</b> · SSID:<b>'+getSSID(selectedNum)+'</b> · IP:<b style="color:#16a34a">'+ip+'</b>';
-  goStep(Math.min(d.step||1, 4));
+  goStep(Math.min(d.step||1, 3));
 }
 
 // ── FIREBASE LISTENER ──
@@ -596,23 +740,24 @@ function loadSessionList() {
   const r = ref(db, 'sessions');
   onValue(r, snap => {
     const data = snap.val()||{};
-    saveSessionsLocal(data); // garde une copie locale pour le mode hors-ligne
+    saveSessionsLocal(data);
     setSyncBar('online','Connecté');
     renderSessionList(data);
   }, ()=>{
-    // Hors-ligne ou erreur Firebase : on affiche les sessions connues localement
     const cached = loadSessionsLocal();
     setSyncBar('offline','Hors-ligne — sessions enregistrées disponibles');
     renderSessionList(cached);
   });
 }
 
+const TOTAL_NUMS = Object.keys(CODES).length;
+
 function renderSessionList(data) {
   const list=document.getElementById('qList');
   list.innerHTML='';
   const entries=Object.entries(data);
   if (!entries.length) {
-    list.innerHTML='<div style="color:#aaa;font-size:0.82rem;text-align:center;padding:8px 0">Aucune session — créez-en une ci-dessous</div>';
+    list.innerHTML='<div style="color:var(--text-faint);font-size:0.82rem;text-align:center;padding:8px 0">Aucune session — créez-en une ci-dessous</div>';
     return;
   }
   entries.forEach(([key,val])=>{
@@ -623,7 +768,7 @@ function renderSessionList(data) {
     div.innerHTML=
       '<div><div class="q-name">📍 '+info.quartier+' · BASE '+info.base+'</div>'+
       '<div class="q-meta">IP: '+info.ip+' · Rules: '+info.rules+'</div></div>'+
-      '<span class="q-count">'+count+' / 66</span>';
+      '<span class="q-count">'+count+' / '+TOTAL_NUMS+'</span>';
     div.onclick=()=>selectSession(key, info);
     list.appendChild(div);
   });
@@ -651,8 +796,6 @@ function startNewSession() {
   document.getElementById('newIP').classList.remove('error');
   const key=q.replace(/\W/g,'_')+'__'+b;
 
-  // Si une session avec ce quartier+base existe déjà (en ligne ou en cache local), on la rejoint
-  // au lieu d'en créer une "neuve" qui sèmerait la confusion.
   const known = loadSessionsLocal();
   if (known[key]) {
     if (!confirm('📍 Une session "'+q+' · BASE '+b+'" existe déjà.\n\nVoulez-vous la reprendre avec ses clients déjà enregistrés ?')) return;
@@ -676,7 +819,9 @@ function openForm(pushHistory = true) {
   document.getElementById('headerBadge').style.display='inline-block';
   document.getElementById('headerBadge').textContent=badge;
   selectedNum=null;
-  ['fNom','fNumero','fMAC','fLocal'].forEach(id=>document.getElementById(id).value='');
+  personRows=[{nom:'',numero:''}];
+  document.getElementById('fMAC').value='';
+  document.getElementById('fLocal').value='';
   document.getElementById('selectionInfo').style.display='none';
   document.getElementById('selectionInfo').innerHTML='';
   const b2=document.getElementById('btnStep2');
@@ -686,14 +831,16 @@ function openForm(pushHistory = true) {
     currentStep=1;
     document.getElementById('step1').classList.add('active');
   }
-  document.getElementById('progressBar').style.width='20%';
-  document.getElementById('progressLabel').textContent='Étape 1 / 5';
+  document.getElementById('progressBar').style.width='25%';
+  document.getElementById('progressLabel').textContent='Étape 1 / 4';
+  isSaving=false;
+  const cb=document.getElementById('btnConfirm'); if(cb){ cb.disabled=false; cb.textContent='✅ Confirmer'; }
   allClients={};
   loadLocal();
   listenSession();
   updateTopBar();
   window.scrollTo(0,0);
-  setTimeout(restoreDraftIfAny, 400); // let Firebase listener populate usedNums first
+  setTimeout(restoreDraftIfAny, 400);
 }
 
 // ── GRID ──
@@ -725,37 +872,121 @@ function selectNum(n){
   saveDraft();
 }
 
+// ── PERSONNES (étape 2, formulaire principal) ──
+function syncPersonRowsFromDOM(){
+  const cards=document.querySelectorAll('#personsList .person-card');
+  const rows=[];
+  cards.forEach(card=>{
+    rows.push({
+      nom: card.querySelector('.p-nom').value,
+      numero: card.querySelector('.p-tel').value
+    });
+  });
+  if (rows.length) personRows=rows;
+}
+
+function renderPersonRows(){
+  const wrap=document.getElementById('personsList');
+  wrap.innerHTML='';
+  personRows.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='person-card';
+    div.innerHTML=
+      '<div class="person-title"><span>Personne '+(i+1)+'</span>'+
+      (personRows.length>1 ? '<button type="button" class="btn-remove-person" onclick="removePersonRow('+i+')">✕ Retirer</button>' : '')+
+      '</div>'+
+      '<div class="field-label">Nom complet</div>'+
+      '<input type="text" class="p-nom" placeholder="Prénom et Nom …" value="'+(p.nom||'').replace(/"/g,'&quot;')+'" oninput="syncPersonRowsFromDOM(); saveDraft();">'+
+      '<div class="field-label">Téléphone</div>'+
+      '<div class="field-hint">ex: 90092671 </div>'+
+      '<input type="tel" class="p-tel" placeholder="90092671" inputmode="tel" value="'+(p.numero||'').replace(/"/g,'&quot;')+'" oninput="onPersonTelInput(this); saveDraft();">'+
+      '<span class="err-msg p-tel-err">❌ Le numéro doit contenir 8 chiffres </span>';
+    wrap.appendChild(div);
+  });
+}
+window.syncPersonRowsFromDOM = syncPersonRowsFromDOM;
+
+function onPersonTelInput(input){
+  syncPersonRowsFromDOM();
+  // Efface l'erreur au fur et a mesure que l'utilisateur corrige
+  const card = input.closest('.person-card');
+  const errEl = card ? card.querySelector('.p-tel-err') : null;
+  const ok = isValidPhone(input.value);
+  input.classList.toggle('error', !ok && input.value.trim()!=='');
+  if (errEl) errEl.style.display = (!ok && input.value.trim()!=='') ? 'block' : 'none';
+}
+window.onPersonTelInput = onPersonTelInput;
+
+function validateStep2(){
+  syncPersonRowsFromDOM();
+  const cards=document.querySelectorAll('#personsList .person-card');
+  let allValid=true;
+  cards.forEach(card=>{
+    const telInput=card.querySelector('.p-tel');
+    const errEl=card.querySelector('.p-tel-err');
+    const ok=isValidPhone(telInput.value);
+    telInput.classList.toggle('error', !ok);
+    if (errEl) errEl.style.display = ok ? 'none' : 'block';
+    if (!ok) allValid=false;
+  });
+  if (allValid) goStep(3);
+  else {
+    const firstBad=document.querySelector('#personsList .p-tel.error');
+    if (firstBad) firstBad.focus();
+  }
+}
+window.validateStep2 = validateStep2;
+
+function addPersonRow(){
+  syncPersonRowsFromDOM();
+  personRows.push({nom:'',numero:''});
+  renderPersonRows();
+  saveDraft();
+}
+window.addPersonRow = addPersonRow;
+
+function removePersonRow(i){
+  syncPersonRowsFromDOM();
+  personRows.splice(i,1);
+  if (!personRows.length) personRows=[{nom:'',numero:''}];
+  renderPersonRows();
+  saveDraft();
+}
+window.removePersonRow = removePersonRow;
+
 // ── STEPS ──
 function goStep(n){
   if(n===2&&!selectedNum) return;
+  if(currentStep===2) syncPersonRowsFromDOM();
   document.getElementById('step'+currentStep).classList.remove('active');
   currentStep=n;
   document.getElementById('step'+currentStep).classList.add('active');
-  document.getElementById('progressBar').style.width=(n===5?100:n/5*100)+'%';
-  document.getElementById('progressLabel').textContent=n<5?'Étape '+n+' / 5':'Récapitulatif';
+  document.getElementById('progressBar').style.width=(n===4?100:n/4*100)+'%';
+  document.getElementById('progressLabel').textContent=n<4?'Étape '+n+' / 4':'Récapitulatif';
   if(n===2){
     const ip=calcIP(session.ip,session.rules,selectedNum);
     document.getElementById('fAutoInfo').value='N°'+selectedNum+' | Code:'+CODES[selectedNum]+' | SSID:'+getSSID(selectedNum)+' | IP:'+ip;
-    setTimeout(()=>document.getElementById('fNom').focus(),100);
+    if (!personRows.length) personRows=[{nom:'',numero:''}];
+    renderPersonRows();
+    setTimeout(()=>{ const el=document.querySelector('#personsList .p-nom'); if(el) el.focus(); },100);
   }
-  if(n===3) setTimeout(()=>document.getElementById('fNumero').focus(),100);
-  if(n===4) setTimeout(()=>document.getElementById('fMAC').focus(),100);
-  if(n===5) fillRecap();
+  if(n===3) setTimeout(()=>document.getElementById('fMAC').focus(),100);
+  if(n===4) fillRecap();
   if(n===1) renderGrid();
   saveDraft();
   updateTopBar();
 }
 window.goStep=goStep;
 
-function validateStep4(){
+function validateStep3(){
   const mac=document.getElementById('fMAC').value.trim().toUpperCase();
   const ok=/^[A-Z0-9]{4}$/.test(mac);
   document.getElementById('macErr').style.display=ok?'none':'block';
   document.getElementById('fMAC').classList.toggle('error',!ok);
-  if(ok){document.getElementById('fMAC').value=mac; goStep(5);}
+  if(ok){document.getElementById('fMAC').value=mac; goStep(4);}
   else document.getElementById('fMAC').focus();
 }
-window.validateStep4=validateStep4;
+window.validateStep3=validateStep3;
 
 function fillRecap(){
   const ip=calcIP(session.ip,session.rules,selectedNum);
@@ -766,23 +997,38 @@ function fillRecap(){
   document.getElementById('rCode').textContent     = CODES[selectedNum];
   document.getElementById('rSSID').textContent     = getSSID(selectedNum);
   document.getElementById('rIP').textContent       = ip;
-  document.getElementById('rNom').textContent      = document.getElementById('fNom').value||'—';
-  document.getElementById('rNumero').textContent   = document.getElementById('fNumero').value||'—';
   document.getElementById('rMAC').textContent      = document.getElementById('fMAC').value||'—';
   document.getElementById('rLocal').textContent    = document.getElementById('fLocal').value||'—';
+  const wrap=document.getElementById('rPersons');
+  wrap.innerHTML='';
+  personRows.forEach((p,i)=>{
+    const row=document.createElement('div');
+    row.className='recap-person-row';
+    row.innerHTML='<span>👤 Personne '+(i+1)+' : <b>'+(p.nom||'—')+'</b></span><span>'+(p.numero||'—')+'</span>';
+    wrap.appendChild(row);
+  });
 }
 
 // ── SAVE ──
 async function saveClient(){
+  if (isSaving) return; // anti double-clic / anti doublon
+  isSaving = true;
+  const btn=document.getElementById('btnConfirm');
+  btn.disabled=true;
+  btn.textContent='⏳ Enregistrement…';
+
+  syncPersonRowsFromDOM();
   const ip=calcIP(session.ip,session.rules,selectedNum);
+  const persons = personRows
+    .map(p=>({nom:(p.nom||'').trim(), numero:normalizePhone(p.numero)||(p.numero||'').trim()}))
+    .filter(p=>p.nom || p.numero);
   const c={
     agent, quartier:session.quartier, base:session.base,
     sessionIP:session.ip, sessionRules:session.rules,
     num:selectedNum, code:CODES[selectedNum], ssid:getSSID(selectedNum), ip,
-    nom:document.getElementById('fNom').value.trim(),
-    numero:document.getElementById('fNumero').value.trim(),
     mac:document.getElementById('fMAC').value.trim().toUpperCase(),
     local:document.getElementById('fLocal').value.trim(),
+    personnes: persons.length?persons:[{nom:'',numero:''}],
     date:new Date().toLocaleString('fr-FR')
   };
 
@@ -803,27 +1049,34 @@ async function saveClient(){
   clearDraft();
   document.getElementById('formSection').style.display='none';
   document.getElementById('success').style.display='block';
+  const firstNom = c.personnes[0] && c.personnes[0].nom;
+  const extra = c.personnes.length>1 ? ' (+'+(c.personnes.length-1)+' autre'+(c.personnes.length>2?'s':'')+')' : '';
   document.getElementById('successMsg').textContent=
-    session.quartier+' · N°'+c.num+' · '+c.code+' · IP:'+c.ip+(c.nom?' · '+c.nom:'');
+    session.quartier+' · N°'+c.num+' · '+c.code+' · IP:'+c.ip+(firstNom?' · '+firstNom:'')+extra;
   document.getElementById('saveStatus').innerHTML=savedOnline
-    ? '<div class="save-ok">☁️ Synchronisé sur Firebase — visible par toute l\'équipe</div>'
+    ? '<div class="save-ok">☁️ Synchronisé — visible par toute l\'équipe</div>'
     : '<div class="save-warn">⚠️ Hors-ligne — données locales. Se synchronisera dès reconnexion.</div>';
   window.scrollTo(0,0);
+  isSaving=false; // le formulaire est de toute facon quitte a ce stade
 }
 window.saveClient=saveClient;
 
 function newClient(){
   selectedNum=null;
+  personRows=[{nom:'',numero:''}];
   document.getElementById('success').style.display='none';
   document.getElementById('formSection').style.display='block';
-  ['fNom','fNumero','fMAC','fLocal'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fMAC').value='';
+  document.getElementById('fLocal').value='';
   document.getElementById('selectionInfo').style.display='none';
   document.getElementById('selectionInfo').innerHTML='';
   const b=document.getElementById('btnStep2'); b.disabled=true; b.style.opacity='0.4';
   document.getElementById('step'+currentStep).classList.remove('active');
   currentStep=1; document.getElementById('step1').classList.add('active');
-  document.getElementById('progressBar').style.width='20%';
-  document.getElementById('progressLabel').textContent='Étape 1 / 5';
+  document.getElementById('progressBar').style.width='25%';
+  document.getElementById('progressLabel').textContent='Étape 1 / 4';
+  isSaving=false;
+  const cb=document.getElementById('btnConfirm'); if(cb){ cb.disabled=false; cb.textContent='✅ Confirmer'; }
   renderGrid(); window.scrollTo(0,0);
   updateTopBar();
 }
@@ -831,44 +1084,100 @@ window.newClient=newClient;
 
 // ── TABLE ──
 function renderTable(){
-  const clients=Object.values(allClients).sort((a,b)=>a.num-b.num);
+  // On garde la cle Firebase associee a chaque client, meme apres tri —
+  // c'est le coeur du correctif du bug modifier/supprimer.
+  const entries=Object.entries(allClients)
+    .map(([key,c])=>({key,...c}))
+    .sort((a,b)=>a.num-b.num);
+
   const sec=document.getElementById('tableSection');
-  sec.style.display=clients.length?'block':'none';
+  sec.style.display=entries.length?'block':'none';
   document.getElementById('tableTitle').textContent=
-    (session?session.quartier+' · BASE '+session.base:'')+' : '+clients.length+' / '+Object.keys(CODES).length+' clients';
+    (session?session.quartier+' · BASE '+session.base:'')+' : '+entries.length+' / '+TOTAL_NUMS+' clients';
   const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
-  clients.forEach((c,i)=>{
+  entries.forEach(c=>{
+    const persons=getPersons(c);
+    const personsHtml=persons.map(p=>'<div class="person-line">'+(p.nom||'—')+' <span style="color:var(--text-faint)">('+(p.numero||'—')+')</span></div>').join('');
     const tr=document.createElement('tr');
     tr.innerHTML=
       '<td><span class="badge-num">'+c.num+'</span></td>'+
       '<td><b>'+c.code+'</b></td><td>'+c.ssid+'</td><td>'+c.ip+'</td>'+
-      '<td>'+c.nom+'</td><td>'+c.numero+'</td><td><b>'+c.mac+'</b></td>'+
+      '<td>'+personsHtml+'</td>'+
+      '<td><b>'+c.mac+'</b></td>'+
       '<td>'+c.local+'</td><td>'+c.agent+'</td>'+
-      '<td><button class="btn-edit" onclick="editClient(\''+Object.keys(allClients)[i]+'\')">✏️</button>'+
-      '<button class="btn-del" onclick="delClient(\''+Object.keys(allClients)[i]+'\')">✕</button></td>';
+      '<td><button class="btn-edit" onclick="editClient(\''+c.key+'\')">✏️</button>'+
+      '<button class="btn-del" onclick="delClient(\''+c.key+'\')">✕</button></td>';
     tbody.appendChild(tr);
   });
 }
 window.renderTable=renderTable;
 
 async function delClient(k){
-  if(!confirm('Supprimer ce client ?')) return;
+  const c=allClients[k];
+  if (!c) return;
+  const persons=getPersons(c);
+  const names=persons.map(p=>p.nom).filter(Boolean).join(', ')||'ce client';
+  if(!confirm('Voulez-vous vraiment supprimer le client '+names+' (N°'+c.num+') ?')) return;
   try { await remove(ref(db,'sessions/'+session.key+'/clients/'+k)); }
   catch(e){ delete allClients[k]; saveLocal(); renderTable(); renderGrid(); }
 }
 window.delClient=delClient;
 
 // ── MODIFICATION CLIENT ──
+function renderEditPersonRows(){
+  const wrap=document.getElementById('editPersonsList');
+  wrap.innerHTML='';
+  editPersonRows.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='person-card';
+    div.innerHTML=
+      '<div class="person-title"><span>Personne '+(i+1)+'</span>'+
+      (editPersonRows.length>1 ? '<button type="button" class="btn-remove-person" onclick="removeEditPersonRow('+i+')">✕ Retirer</button>' : '')+
+      '</div>'+
+      '<div class="field-label">Nom complet</div>'+
+      '<input type="text" class="ep-nom" placeholder="Prénom et Nom …" value="'+(p.nom||'').replace(/"/g,'&quot;')+'">'+
+      '<div class="field-label">Téléphone</div>'+
+      '<div class="field-hint">8 chiffres — ex: 90092671 (l\'indicatif +228 est ignoré)</div>'+
+      '<input type="tel" class="ep-tel" placeholder="ex: 90092671" inputmode="tel" value="'+(p.numero||'').replace(/"/g,'&quot;')+'">'+
+      '<span class="err-msg ep-tel-err">❌ Le numéro doit contenir 8 chiffres </span>';
+    wrap.appendChild(div);
+  });
+}
+
+function syncEditPersonRowsFromDOM(){
+  const cards=document.querySelectorAll('#editPersonsList .person-card');
+  const rows=[];
+  cards.forEach(card=>{
+    rows.push({ nom:card.querySelector('.ep-nom').value, numero:card.querySelector('.ep-tel').value });
+  });
+  if (rows.length) editPersonRows=rows;
+}
+
+function addEditPersonRow(){
+  syncEditPersonRowsFromDOM();
+  editPersonRows.push({nom:'',numero:''});
+  renderEditPersonRows();
+}
+window.addEditPersonRow=addEditPersonRow;
+
+function removeEditPersonRow(i){
+  syncEditPersonRowsFromDOM();
+  editPersonRows.splice(i,1);
+  if (!editPersonRows.length) editPersonRows=[{nom:'',numero:''}];
+  renderEditPersonRows();
+}
+window.removeEditPersonRow=removeEditPersonRow;
+
 function editClient(k){
   editingKey = k;
   const c = allClients[k];
   if (!c) return;
-  document.getElementById('eNom').value    = c.nom || '';
-  document.getElementById('eNumero').value = c.numero || '';
   document.getElementById('eMAC').value    = c.mac || '';
   document.getElementById('eLocal').value  = c.local || '';
   document.getElementById('eMacErr').style.display = 'none';
   document.getElementById('eMAC').classList.remove('error');
+  editPersonRows = getPersons(c).map(p=>({nom:p.nom||'', numero:p.numero||''}));
+  renderEditPersonRows();
   document.getElementById('editOverlay').classList.add('show');
 }
 window.editClient = editClient;
@@ -890,20 +1199,40 @@ async function saveEditClient(){
   document.getElementById('eMacErr').style.display = 'none';
   document.getElementById('eMAC').classList.remove('error');
 
+  syncEditPersonRowsFromDOM();
+
+  let allPhonesValid = true;
+  document.querySelectorAll('#editPersonsList .person-card').forEach(card=>{
+    const telInput=card.querySelector('.ep-tel');
+    const errEl=card.querySelector('.ep-tel-err');
+    const ok=isValidPhone(telInput.value);
+    telInput.classList.toggle('error', !ok);
+    if (errEl) errEl.style.display = ok ? 'none' : 'block';
+    if (!ok) allPhonesValid = false;
+  });
+  if (!allPhonesValid) return;
+
+  const persons = editPersonRows
+    .map(p=>({nom:(p.nom||'').trim(), numero:normalizePhone(p.numero)||(p.numero||'').trim()}))
+    .filter(p=>p.nom || p.numero);
+
   const updated = {
     ...allClients[editingKey],
-    nom:    document.getElementById('eNom').value.trim(),
-    numero: document.getElementById('eNumero').value.trim(),
     mac:    mac,
-    local:  document.getElementById('eLocal').value.trim()
+    local:  document.getElementById('eLocal').value.trim(),
+    personnes: persons.length?persons:[{nom:'',numero:''}]
   };
+  delete updated.nom; delete updated.numero; // nettoyage ancien format
 
+  const keyToSave = editingKey;
   try {
-    await set(ref(db, 'sessions/'+session.key+'/clients/'+editingKey), updated);
+    await set(ref(db, 'sessions/'+session.key+'/clients/'+keyToSave), updated);
+    showToast('✅ Client modifié avec succès.');
   } catch(e){
-    allClients[editingKey] = updated;
+    allClients[keyToSave] = updated;
     saveLocal();
     renderTable();
+    showToast('✅ Client modifié avec succès. (hors-ligne)');
   }
   closeEditModal();
 }
@@ -911,11 +1240,17 @@ window.saveEditClient = saveEditClient;
 
 function exportCSV(){
   if (!session) { alert('Ouvrez une session pour exporter ses données.'); return; }
-  const clients=Object.values(allClients).sort((a,b)=>a.num-b.num);
-  if (!clients.length) { alert('Aucun client à exporter dans cette session.'); return; }
-  const header=['Agent','Quartier','Base','IP Session','N°','Code','SSID','IP Client','Nom','Téléphone','MAC','Localisation','Date'];
-  const rows=clients.map(c=>[c.agent,c.quartier,c.base,c.sessionIP,c.num,c.code,c.ssid,c.ip,c.nom,c.numero,c.mac,c.local,c.date]
-    .map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(','));
+  const entries=Object.values(allClients).sort((a,b)=>a.num-b.num);
+  if (!entries.length) { alert('Aucun client à exporter dans cette session.'); return; }
+  const header=['Agent','Quartier','Base','IP Session','N°','Code','SSID','IP Client','MAC','Localisation','Nom','Téléphone','Date'];
+  const rows=[];
+  entries.forEach(c=>{
+    const persons=getPersons(c);
+    persons.forEach(p=>{
+      rows.push([c.agent,c.quartier,c.base,c.sessionIP,c.num,c.code,c.ssid,c.ip,c.mac,c.local,p.nom,p.numero,c.date]
+        .map(v=>'"'+(v===undefined||v===null?'':v).toString().replace(/"/g,'""')+'"').join(','));
+    });
+  });
   const csv=[header.join(','),...rows].join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -936,14 +1271,9 @@ window.installApp=function(){
 // ── KEYBOARD ──
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
-    const btn=document.querySelector('#step'+currentStep+' .btn-next:not([disabled]), #step'+currentStep+' .btn-confirm');
+    const btn=document.querySelector('#step'+currentStep+' .btn-next:not([disabled]), #step'+currentStep+' .btn-confirm:not([disabled])');
     if(btn) btn.click();
   }
-});
-
-// ── AUTOSAVE DRAFT ON INPUT ──
-['fNom','fNumero','fMAC','fLocal'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', saveDraft);
 });
 
 // ── SERVICE WORKER ──
@@ -951,16 +1281,12 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js')
     .then(reg => {
       console.log('SW enregistré:', reg.scope);
-      // Vérifie activement s'il existe une nouvelle version à chaque ouverture
       reg.update();
-
-      // Une nouvelle version a été trouvée et installée en arrière-plan
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         if (!newWorker) return;
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'activated') {
-            // La nouvelle version est maintenant active : on recharge pour l'afficher
             window.location.reload();
           }
         });
@@ -975,7 +1301,6 @@ if ('serviceWorker' in navigator) {
     }
   });
 
-  // Si le SW actif change (nouvelle version prend le contrôle), recharge une fois
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (refreshing) return;
@@ -994,6 +1319,7 @@ window.addEventListener('online', () => {
 });
 
 // ── INIT ──
+applyThemeIcon();
 loadLocal();
 if (agent) showSessionScreen(false);
 else { document.getElementById('agentScreen').style.display='block'; document.getElementById('headerSub').textContent='Identification agent'; }
